@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Niki ❤️</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fce4ec; /* Light pink background */
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            overflow: hidden; /* Prevents scrollbars when button moves */
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 90%;
+        }
+
+        h1 {
+            color: #d81b60;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* This controls the image size */
+        .gif-container img {
+            width: 100%;
+            max-width: 300px; /* Adjust this if the image is too big */
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .yes-btn {
+            background-color: #e91e63;
+            color: white;
+            font-weight: bold;
+        }
+
+        .yes-btn:hover {
+            background-color: #c2185b;
+            transform: scale(1.1);
+        }
+
+        .no-btn {
+            background-color: #ddd;
+            color: #333;
+            position: relative; /* Important for movement */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="gif-container">
+            <img id="main-image" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmhvbXN5dG1rNXhvcWloMmEwY3dodzMzOXRnZ2VuZmZsY3IycWI4NSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/J3PtppTjjrvnGvRGcY/giphy.gif" alt="Psyduck Confused">
+        </div>
+        
+        <h1 id="question">Niki, will you be my valentine?</h1>
+        
+        <div class="buttons">
+            <button class="btn yes-btn" onclick="sheSaidYes()">Yes</button>
+            <button class="btn no-btn" id="noBtn" onmouseover="moveButton()" onclick="moveButton()">No</button>
+        </div>
+    </div>
+
+    <script>
+        function moveButton() {
+            const noBtn = document.getElementById('noBtn');
+            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+            
+            // Make the button absolute so it can move anywhere
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = `${x}px`;
+            noBtn.style.top = `${y}px`;
+        }
+
+        function sheSaidYes() {
+            // 1. Change the text
+            const question = document.getElementById('question');
+            question.innerText = "YAY! 🥳";
+            
+            // 2. Hide the buttons
+            document.querySelector('.buttons').style.display = 'none';
+            
+            // 3. Change the image to the Celebration GIF
+            // I've put a placeholder celebration GIF here.
+            document.getElementById('main-image').src = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGlhNWhoMDByNXdjajF5bWltbjM0eGhzOHVqcnVnbjc3MWF0NHY4aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VBxWYF511T2HjcJT1v/giphy.gif"; 
+        }
+    </script>
+</body>
+</html>
