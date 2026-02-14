@@ -24,7 +24,8 @@
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             width: 80%;
-            max-width: 600px; /* Made bigger for the game */
+            max-width: 600px;
+            position: relative;
         }
 
         h1 {
@@ -52,16 +53,32 @@
             position: absolute;
             bottom: 0;
             left: 50px;
+            z-index: 2;
         }
 
         .cactus {
             width: 30px;
             height: 40px;
-            background-color: #d81b60; /* Pink digital cactus */
+            background-color: #d81b60;
             position: absolute;
             bottom: 0;
-            left: 600px; /* Start off screen */
+            left: 600px;
             border-radius: 5px;
+        }
+
+        /* Game Over Overlay */
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10;
+            text-align: center;
+            display: none; /* Hidden by default */
         }
 
         /* Jump Animation */
@@ -118,6 +135,17 @@
 
         .yes-btn { background-color: #e91e63; color: white; }
         .no-btn { background-color: #ddd; color: #333; position: relative; }
+        
+        .retry-btn {
+            background-color: white;
+            color: red;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -129,6 +157,11 @@
             
             <div id="game-container" onclick="jump()">
                 <div id="dino"></div>
+                <div id="game-over">
+                    <h2>FAILED! 😭</h2>
+                    <p>Don't give up on love!</p>
+                    <button class="retry-btn" onclick="retryGame()">Try Again</button>
+                </div>
             </div>
 
             <div id="score-box">
@@ -156,11 +189,49 @@
         const gameScreen = document.getElementById("game-screen");
         const proposalScreen = document.getElementById("proposal-screen");
         const scoreFill = document.getElementById("score-fill");
+        const gameOverScreen = document.getElementById("game-over");
         
         let isJumping = false;
         let gameActive = true;
         let progress = 0;
-        const winThreshold = 100; // Require 100 ticks to win
+        let gameInterval;
+        
+        // Start the game loop
+        startGame();
+
+        function startGame() {
+            gameActive = true;
+            progress = 0;
+            scoreFill.style.width = "0%";
+            gameOverScreen.style.display = "none";
+            
+            // Clear existing cactus
+            document.querySelectorAll('.cactus').forEach(e => e.remove());
+
+            // Main Loop
+            gameInterval = setInterval(function() {
+                if (!gameActive) return;
+
+                // Update Progress (0.25 means it takes roughly 20 seconds to reach 100)
+                progress += 0.25;
+                scoreFill.style.width = progress + "%";
+
+                // Check Win Condition
+                if (progress >= 100) {
+                    winGame();
+                }
+
+                // Spawn obstacles (Increased chance to 4% for "More obstacles")
+                let randomChance = Math.random() * 100;
+                if (randomChance < 4) { 
+                    createCactus();
+                }
+            }, 50);
+        }
+
+        function retryGame() {
+            startGame();
+        }
 
         // Handle Jump
         document.addEventListener('keydown', function(event) {
@@ -180,26 +251,6 @@
             }
         }
 
-        // Game Loop
-        let gameInterval = setInterval(function() {
-            if (!gameActive) return;
-
-            // Update Progress
-            progress += 0.5;
-            scoreFill.style.width = progress + "%";
-
-            // Check Win Condition
-            if (progress >= 100) {
-                winGame();
-            }
-
-            // Spawn obstacles randomly
-            let randomChance = Math.random() * 100;
-            if (randomChance < 2) { // 2% chance per tick to spawn cactus
-                createCactus();
-            }
-        }, 50);
-
         function createCactus() {
             if (!gameActive) return;
             
@@ -207,38 +258,36 @@
             cactus.classList.add('cactus');
             cactus.style.left = '100%'; 
             
-            // Varied heights (Geometry Dash style)
-            let randomHeight = Math.floor(Math.random() * 30) + 20; // 20px to 50px
+            // Varied heights
+            let randomHeight = Math.floor(Math.random() * 30) + 20; 
             cactus.style.height = randomHeight + 'px';
             
             document.getElementById('game-container').appendChild(cactus);
 
             // Move Cactus Logic
-            let cactusPosition = 100; // percentage
+            let cactusPosition = 100; 
             let moveInterval = setInterval(function() {
                 if (!gameActive) {
                     clearInterval(moveInterval);
                     return;
                 }
 
-                cactusPosition -= 2; // Speed
+                cactusPosition -= 2; 
                 cactus.style.left = cactusPosition + '%';
 
                 // Check Collision
-                // We use simple coordinate checking here
                 let dinoRect = dino.getBoundingClientRect();
                 let cactusRect = cactus.getBoundingClientRect();
 
+                // Simple collision detection
+                // We add a little buffer (-10) to make it forgiving
                 if (
-                    dinoRect.right > cactusRect.left &&
-                    dinoRect.left < cactusRect.right &&
+                    dinoRect.right > cactusRect.left + 10 &&
+                    dinoRect.left < cactusRect.right - 10 &&
                     dinoRect.bottom > cactusRect.top
                 ) {
-                    // Collision detected! Reset progress slightly but don't kill (too mean)
-                    cactus.remove();
-                    progress = Math.max(0, progress - 10); // Penalty
-                    scoreFill.style.backgroundColor = "red";
-                    setTimeout(() => scoreFill.style.backgroundColor = "#4caf50", 200);
+                    // CRASH!
+                    gameOver();
                     clearInterval(moveInterval);
                 }
 
@@ -250,8 +299,15 @@
             }, 20);
         }
 
+        function gameOver() {
+            gameActive = false;
+            clearInterval(gameInterval);
+            gameOverScreen.style.display = "block";
+        }
+
         function winGame() {
             gameActive = false;
+            clearInterval(gameInterval);
             
             // Celebration
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
@@ -263,7 +319,7 @@
             }, 1000);
         }
 
-        // --- Proposal Logic (Same as before) ---
+        // --- Proposal Logic ---
         function moveButton() {
             const noBtn = document.getElementById('noBtn');
             const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
