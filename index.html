@@ -7,79 +7,97 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <style>
         body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fce4ec;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #fce4ec;
-            background-image: radial-gradient(#ffc1e3 1px, transparent 1px);
-            background-size: 20px 20px;
-            font-family: 'Arial', sans-serif;
             margin: 0;
             overflow: hidden;
-            text-align: center;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
+            text-align: center;
+            background: white;
+            padding: 20px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            max-width: 90%;
-            width: 400px;
-            transition: all 0.3s ease;
-        }
-
-        /* --- GAME STYLES --- */
-        #game-screen h2 {
-            color: #d81b60;
-            margin-bottom: 10px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background-color: #ddd;
-            border-radius: 10px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-
-        #progress {
-            width: 0%;
-            height: 100%;
-            background-color: #e91e63;
-            transition: width 0.2s;
-        }
-
-        #click-heart {
-            font-size: 5rem;
-            cursor: pointer;
-            transition: transform 0.1s;
-            user-select: none;
-        }
-
-        #click-heart:active {
-            transform: scale(0.9);
-        }
-
-        /* --- PROPOSAL STYLES --- */
-        .hidden {
-            display: none !important;
-        }
-
-        .gif-container img {
-            width: 100%;
-            max-width: 280px;
-            height: auto;
-            border-radius: 15px;
-            margin-bottom: 20px;
+            width: 80%;
+            max-width: 600px; /* Made bigger for the game */
         }
 
         h1 {
             color: #d81b60;
-            font-size: 2.2rem;
-            margin-bottom: 20px;
+        }
+
+        /* --- GAME AREA --- */
+        #game-container {
+            width: 100%;
+            height: 200px;
+            border-bottom: 2px solid #555;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            background-color: #f7f7f7;
+        }
+
+        #dino {
+            width: 60px;
+            height: 60px;
+            /* Your custom GIF */
+            background-image: url('https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3OGRzcnBmdTUyYjcycTF5OG12cTM0dXZwZTRscnhxcmMwcjljM3R2eiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/hWEuQQR3LazYDz1F3D/giphy.gif');
+            background-size: contain;
+            background-repeat: no-repeat;
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+        }
+
+        .cactus {
+            width: 30px;
+            height: 40px;
+            background-color: #d81b60; /* Pink digital cactus */
+            position: absolute;
+            bottom: 0;
+            left: 600px; /* Start off screen */
+            border-radius: 5px;
+        }
+
+        /* Jump Animation */
+        .animate {
+            animation: jump 500ms linear;
+        }
+
+        @keyframes jump {
+            0% { bottom: 0; }
+            30% { bottom: 100px; }
+            70% { bottom: 100px; }
+            100% { bottom: 0; }
+        }
+
+        /* Progress Bar */
+        #score-box {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #score-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #4caf50;
+            transition: width 0.1s linear;
+        }
+
+        /* --- PROPOSAL UI --- */
+        .hidden { display: none !important; }
+        
+        .gif-container img {
+            width: 200px;
+            border-radius: 10px;
         }
 
         .buttons {
@@ -90,7 +108,7 @@
         }
 
         .btn {
-            padding: 15px 35px;
+            padding: 15px 30px;
             font-size: 1.2rem;
             border: none;
             border-radius: 50px;
@@ -98,97 +116,158 @@
             font-weight: bold;
         }
 
-        .yes-btn {
-            background-color: #e91e63;
-            color: white;
-            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
-            animation: pulse 2s infinite;
-        }
-
-        .yes-btn:hover {
-            background-color: #c2185b;
-            transform: scale(1.1);
-        }
-
-        .no-btn {
-            background-color: #f0f0f0;
-            color: #333;
-            position: relative;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+        .yes-btn { background-color: #e91e63; color: white; }
+        .no-btn { background-color: #ddd; color: #333; position: relative; }
     </style>
 </head>
 <body>
 
-    <div class="container" id="game-screen">
-        <h2>Hey Niki! ❤️</h2>
-        <p>Fill the heart to unlock your surprise!</p>
-        
-        <div class="progress-bar">
-            <div id="progress"></div>
+    <div class="container">
+        <div id="game-screen">
+            <h2>Help the bear get to Niki!</h2>
+            <p>Press <b>Space</b> or <b>Tap</b> to Jump</p>
+            
+            <div id="game-container" onclick="jump()">
+                <div id="dino"></div>
+            </div>
+
+            <div id="score-box">
+                <div id="score-fill"></div>
+            </div>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                Get to the finish line for a surprise! 🏁
+            </p>
         </div>
 
-        <div id="click-heart" onclick="pumpLove()">❤️</div>
-        <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">(Tap the heart!)</p>
-    </div>
-
-    <div class="container hidden" id="proposal-screen">
-        <div class="gif-container">
-            <img id="main-image" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmM2Z3I4bHcwMXN3cGF3cW13anB5aHl4b3c1b3c5/LqOWJm/giphy.gif" alt="Cute Cat">
-        </div>
-        
-        <h1 id="question">Niki, will you be my valentine?</h1>
-        
-        <div class="buttons">
-            <button class="btn yes-btn" onclick="sheSaidYes()">Yes</button>
-            <button class="btn no-btn" id="noBtn" onmouseover="moveButton()" onclick="moveButton()">No</button>
+        <div id="proposal-screen" class="hidden">
+            <div class="gif-container">
+                <img id="main-image" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmM2Z3I4bHcwMXN3cGF3cW13anB5aHl4b3c1b3c5/LqOWJm/giphy.gif" alt="Cute Cat">
+            </div>
+            <h1 id="question">Niki, will you be my valentine?</h1>
+            <div class="buttons">
+                <button class="btn yes-btn" onclick="sheSaidYes()">Yes</button>
+                <button class="btn no-btn" id="noBtn" onmouseover="moveButton()" onclick="moveButton()">No</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let loveScore = 0;
-        const targetScore = 10; // Number of clicks required
+        const dino = document.getElementById("dino");
+        const gameScreen = document.getElementById("game-screen");
+        const proposalScreen = document.getElementById("proposal-screen");
+        const scoreFill = document.getElementById("score-fill");
+        
+        let isJumping = false;
+        let gameActive = true;
+        let progress = 0;
+        const winThreshold = 100; // Require 100 ticks to win
 
-        function pumpLove() {
-            loveScore++;
-            
-            // Update Progress Bar
-            const percentage = (loveScore / targetScore) * 100;
-            document.getElementById('progress').style.width = percentage + "%";
+        // Handle Jump
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                jump();
+            }
+        });
 
-            // Make heart throb
-            const heart = document.getElementById('click-heart');
-            heart.style.transform = `scale(${1 + (loveScore * 0.05)})`;
-            setTimeout(() => heart.style.transform = `scale(${1 + (loveScore * 0.05) - 0.1})`, 100);
-
-            // Check if won
-            if (loveScore >= targetScore) {
-                // Celebration Confetti
-                confetti({
-                    particleCount: 150,
-                    spread: 80,
-                    origin: { y: 0.6 }
-                });
-
-                // Switch Screens
-                setTimeout(() => {
-                    document.getElementById('game-screen').classList.add('hidden');
-                    document.getElementById('proposal-screen').classList.remove('hidden');
-                    triggerConfetti(); // Extra burst for the reveal
+        function jump() {
+            if (!isJumping && gameActive) {
+                isJumping = true;
+                dino.classList.add("animate");
+                setTimeout(function() {
+                    dino.classList.remove("animate");
+                    isJumping = false;
                 }, 500);
             }
         }
 
+        // Game Loop
+        let gameInterval = setInterval(function() {
+            if (!gameActive) return;
+
+            // Update Progress
+            progress += 0.5;
+            scoreFill.style.width = progress + "%";
+
+            // Check Win Condition
+            if (progress >= 100) {
+                winGame();
+            }
+
+            // Spawn obstacles randomly
+            let randomChance = Math.random() * 100;
+            if (randomChance < 2) { // 2% chance per tick to spawn cactus
+                createCactus();
+            }
+        }, 50);
+
+        function createCactus() {
+            if (!gameActive) return;
+            
+            const cactus = document.createElement('div');
+            cactus.classList.add('cactus');
+            cactus.style.left = '100%'; 
+            
+            // Varied heights (Geometry Dash style)
+            let randomHeight = Math.floor(Math.random() * 30) + 20; // 20px to 50px
+            cactus.style.height = randomHeight + 'px';
+            
+            document.getElementById('game-container').appendChild(cactus);
+
+            // Move Cactus Logic
+            let cactusPosition = 100; // percentage
+            let moveInterval = setInterval(function() {
+                if (!gameActive) {
+                    clearInterval(moveInterval);
+                    return;
+                }
+
+                cactusPosition -= 2; // Speed
+                cactus.style.left = cactusPosition + '%';
+
+                // Check Collision
+                // We use simple coordinate checking here
+                let dinoRect = dino.getBoundingClientRect();
+                let cactusRect = cactus.getBoundingClientRect();
+
+                if (
+                    dinoRect.right > cactusRect.left &&
+                    dinoRect.left < cactusRect.right &&
+                    dinoRect.bottom > cactusRect.top
+                ) {
+                    // Collision detected! Reset progress slightly but don't kill (too mean)
+                    cactus.remove();
+                    progress = Math.max(0, progress - 10); // Penalty
+                    scoreFill.style.backgroundColor = "red";
+                    setTimeout(() => scoreFill.style.backgroundColor = "#4caf50", 200);
+                    clearInterval(moveInterval);
+                }
+
+                // Remove if off screen
+                if (cactusPosition < -10) {
+                    cactus.remove();
+                    clearInterval(moveInterval);
+                }
+            }, 20);
+        }
+
+        function winGame() {
+            gameActive = false;
+            
+            // Celebration
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+            // Swap Screens
+            setTimeout(() => {
+                gameScreen.classList.add("hidden");
+                proposalScreen.classList.remove("hidden");
+            }, 1000);
+        }
+
+        // --- Proposal Logic (Same as before) ---
         function moveButton() {
             const noBtn = document.getElementById('noBtn');
             const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
             const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
-            
             noBtn.style.position = 'absolute';
             noBtn.style.left = `${x}px`;
             noBtn.style.top = `${y}px`;
@@ -198,12 +277,7 @@
             document.getElementById('question').innerText = "YAY! I love you! ❤️";
             document.querySelector('.buttons').style.display = 'none';
             document.getElementById('main-image').src = "https://media.giphy.com/media/UBOnpTohQClRYDDgTJ/giphy.gif"; 
-            triggerConfetti();
-        }
-
-        function triggerConfetti() {
-            confetti({ particleCount: 100, spread: 70, origin: { x: 0.1, y: 0.6 } });
-            confetti({ particleCount: 100, spread: 70, origin: { x: 0.9, y: 0.6 } });
+            confetti();
         }
     </script>
 </body>
