@@ -78,18 +78,18 @@
             border-radius: 10px;
             z-index: 10;
             text-align: center;
-            display: none; /* Hidden by default */
+            display: none;
         }
 
-        /* Jump Animation */
+        /* Jump Animation - UPDATED: Faster and Higher */
         .animate {
-            animation: jump 500ms linear;
+            animation: jump 400ms ease-out; /* Changed from 500ms linear to 400ms ease-out */
         }
 
         @keyframes jump {
             0% { bottom: 0; }
-            30% { bottom: 100px; }
-            70% { bottom: 100px; }
+            40% { bottom: 130px; } /* Jump higher (was 100px) */
+            60% { bottom: 130px; } /* Hang time */
             100% { bottom: 0; }
         }
 
@@ -152,7 +152,7 @@
 
     <div class="container">
         <div id="game-screen">
-            <h2>Help the bear get to Niki!</h2>
+            <h2>Help the Psyduck get to the finish line!</h2>
             <p>Press <b>Space</b> or <b>Tap</b> to Jump</p>
             
             <div id="game-container" onclick="jump()">
@@ -196,7 +196,6 @@
         let progress = 0;
         let gameInterval;
         
-        // Start the game loop
         startGame();
 
         function startGame() {
@@ -205,27 +204,20 @@
             scoreFill.style.width = "0%";
             gameOverScreen.style.display = "none";
             
-            // Clear existing cactus
             document.querySelectorAll('.cactus').forEach(e => e.remove());
 
-            // Main Loop
             gameInterval = setInterval(function() {
                 if (!gameActive) return;
 
-                // Update Progress (0.25 means it takes roughly 20 seconds to reach 100)
+                // Update Progress (Slowed down slightly for 20s total game time)
                 progress += 0.25;
                 scoreFill.style.width = progress + "%";
 
-                // Check Win Condition
-                if (progress >= 100) {
-                    winGame();
-                }
+                if (progress >= 100) winGame();
 
-                // Spawn obstacles (Increased chance to 4% for "More obstacles")
+                // Obstacle Spawn Rate
                 let randomChance = Math.random() * 100;
-                if (randomChance < 4) { 
-                    createCactus();
-                }
+                if (randomChance < 4) createCactus();
             }, 50);
         }
 
@@ -233,21 +225,19 @@
             startGame();
         }
 
-        // Handle Jump
         document.addEventListener('keydown', function(event) {
-            if (event.code === 'Space') {
-                jump();
-            }
+            if (event.code === 'Space') jump();
         });
 
         function jump() {
             if (!isJumping && gameActive) {
                 isJumping = true;
                 dino.classList.add("animate");
+                // Timeout matches CSS animation time (400ms)
                 setTimeout(function() {
                     dino.classList.remove("animate");
                     isJumping = false;
-                }, 500);
+                }, 400); 
             }
         }
 
@@ -258,13 +248,11 @@
             cactus.classList.add('cactus');
             cactus.style.left = '100%'; 
             
-            // Varied heights
             let randomHeight = Math.floor(Math.random() * 30) + 20; 
             cactus.style.height = randomHeight + 'px';
             
             document.getElementById('game-container').appendChild(cactus);
 
-            // Move Cactus Logic
             let cactusPosition = 100; 
             let moveInterval = setInterval(function() {
                 if (!gameActive) {
@@ -275,23 +263,20 @@
                 cactusPosition -= 2; 
                 cactus.style.left = cactusPosition + '%';
 
-                // Check Collision
+                // --- UPDATED COLLISION DETECTION ---
+                // Much more forgiving!
                 let dinoRect = dino.getBoundingClientRect();
                 let cactusRect = cactus.getBoundingClientRect();
 
-                // Simple collision detection
-                // We add a little buffer (-10) to make it forgiving
                 if (
-                    dinoRect.right > cactusRect.left + 10 &&
-                    dinoRect.left < cactusRect.right - 10 &&
+                    dinoRect.right > cactusRect.left + 25 && // Hitbox buffer right
+                    dinoRect.left < cactusRect.right - 25 && // Hitbox buffer left
                     dinoRect.bottom > cactusRect.top
                 ) {
-                    // CRASH!
                     gameOver();
                     clearInterval(moveInterval);
                 }
 
-                // Remove if off screen
                 if (cactusPosition < -10) {
                     cactus.remove();
                     clearInterval(moveInterval);
@@ -308,18 +293,13 @@
         function winGame() {
             gameActive = false;
             clearInterval(gameInterval);
-            
-            // Celebration
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-
-            // Swap Screens
             setTimeout(() => {
                 gameScreen.classList.add("hidden");
                 proposalScreen.classList.remove("hidden");
             }, 1000);
         }
 
-        // --- Proposal Logic ---
         function moveButton() {
             const noBtn = document.getElementById('noBtn');
             const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
