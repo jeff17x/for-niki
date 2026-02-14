@@ -4,39 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>For Niki ❤️</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <style>
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #fce4ec; /* Light pink background */
+            background-color: #fce4ec;
+            background-image: radial-gradient(#ffc1e3 1px, transparent 1px);
+            background-size: 20px 20px;
             font-family: 'Arial', sans-serif;
             margin: 0;
-            overflow: hidden; /* Prevents scrollbars when button moves */
+            overflow: hidden;
+            text-align: center;
         }
 
         .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             max-width: 90%;
+            width: 400px;
+            transition: all 0.3s ease;
+        }
+
+        /* --- GAME STYLES --- */
+        #game-screen h2 {
+            color: #d81b60;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        #progress {
+            width: 0%;
+            height: 100%;
+            background-color: #e91e63;
+            transition: width 0.2s;
+        }
+
+        #click-heart {
+            font-size: 5rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+
+        #click-heart:active {
+            transform: scale(0.9);
+        }
+
+        /* --- PROPOSAL STYLES --- */
+        .hidden {
+            display: none !important;
+        }
+
+        .gif-container img {
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+            border-radius: 15px;
+            margin-bottom: 20px;
         }
 
         h1 {
             color: #d81b60;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
-
-        /* This controls the image size */
-        .gif-container img {
-            width: 100%;
-            max-width: 300px; /* Adjust this if the image is too big */
-            height: auto;
-            border-radius: 10px;
+            font-size: 2.2rem;
             margin-bottom: 20px;
         }
 
@@ -48,18 +90,19 @@
         }
 
         .btn {
-            padding: 15px 30px;
+            padding: 15px 35px;
             font-size: 1.2rem;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s;
+            font-weight: bold;
         }
 
         .yes-btn {
             background-color: #e91e63;
             color: white;
-            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+            animation: pulse 2s infinite;
         }
 
         .yes-btn:hover {
@@ -68,17 +111,35 @@
         }
 
         .no-btn {
-            background-color: #ddd;
+            background-color: #f0f0f0;
             color: #333;
-            position: relative; /* Important for movement */
+            position: relative;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="game-screen">
+        <h2>Hey Niki! ❤️</h2>
+        <p>Fill the heart to unlock your surprise!</p>
+        
+        <div class="progress-bar">
+            <div id="progress"></div>
+        </div>
+
+        <div id="click-heart" onclick="pumpLove()">❤️</div>
+        <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">(Tap the heart!)</p>
+    </div>
+
+    <div class="container hidden" id="proposal-screen">
         <div class="gif-container">
-            <img id="main-image" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmhvbXN5dG1rNXhvcWloMmEwY3dodzMzOXRnZ2VuZmZsY3IycWI4NSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/J3PtppTjjrvnGvRGcY/giphy.gif" alt="Psyduck Confused">
+            <img id="main-image" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmM2Z3I4bHcwMXN3cGF3cW13anB5aHl4b3c1b3c5/LqOWJm/giphy.gif" alt="Cute Cat">
         </div>
         
         <h1 id="question">Niki, will you be my valentine?</h1>
@@ -90,28 +151,59 @@
     </div>
 
     <script>
+        let loveScore = 0;
+        const targetScore = 10; // Number of clicks required
+
+        function pumpLove() {
+            loveScore++;
+            
+            // Update Progress Bar
+            const percentage = (loveScore / targetScore) * 100;
+            document.getElementById('progress').style.width = percentage + "%";
+
+            // Make heart throb
+            const heart = document.getElementById('click-heart');
+            heart.style.transform = `scale(${1 + (loveScore * 0.05)})`;
+            setTimeout(() => heart.style.transform = `scale(${1 + (loveScore * 0.05) - 0.1})`, 100);
+
+            // Check if won
+            if (loveScore >= targetScore) {
+                // Celebration Confetti
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+
+                // Switch Screens
+                setTimeout(() => {
+                    document.getElementById('game-screen').classList.add('hidden');
+                    document.getElementById('proposal-screen').classList.remove('hidden');
+                    triggerConfetti(); // Extra burst for the reveal
+                }, 500);
+            }
+        }
+
         function moveButton() {
             const noBtn = document.getElementById('noBtn');
             const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
             const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
             
-            // Make the button absolute so it can move anywhere
             noBtn.style.position = 'absolute';
             noBtn.style.left = `${x}px`;
             noBtn.style.top = `${y}px`;
         }
 
         function sheSaidYes() {
-            // 1. Change the text
-            const question = document.getElementById('question');
-            question.innerText = "YAY! 🥳";
-            
-            // 2. Hide the buttons
+            document.getElementById('question').innerText = "YAY! I love you! ❤️";
             document.querySelector('.buttons').style.display = 'none';
-            
-            // 3. Change the image to the Celebration GIF
-            // I've put a placeholder celebration GIF here.
-            document.getElementById('main-image').src = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGlhNWhoMDByNXdjajF5bWltbjM0eGhzOHVqcnVnbjc3MWF0NHY4aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VBxWYF511T2HjcJT1v/giphy.gif"; 
+            document.getElementById('main-image').src = "https://media.giphy.com/media/UBOnpTohQClRYDDgTJ/giphy.gif"; 
+            triggerConfetti();
+        }
+
+        function triggerConfetti() {
+            confetti({ particleCount: 100, spread: 70, origin: { x: 0.1, y: 0.6 } });
+            confetti({ particleCount: 100, spread: 70, origin: { x: 0.9, y: 0.6 } });
         }
     </script>
 </body>
